@@ -23,7 +23,7 @@ func main() {
 	}
 	kmp := keymap.Load()
 
-	monitor := devices.Monitor{
+	monitor := devices.RawMonitor{
 		Activate: nil,
 		Escape:   nil,
 		Keymap:   kmp,
