@@ -8,11 +8,10 @@ import (
 	"time"
 )
 
-
-func spawnUntilCancel(id string) (chan string, context.CancelFunc) {
+func spawnUntilCancel(args [] string) (chan string, context.CancelFunc) {
 	ch := make(chan string)
 	ctx, cancel := context.WithCancel(context.Background())
-	cmd := exec.CommandContext(ctx, "xinput", "test", id)
+	cmd := exec.CommandContext(ctx, "xinput", args...)
 	pipe, err := cmd.StdoutPipe()
 	check(err)
 	scanner := bufio.NewScanner(pipe)
@@ -28,9 +27,9 @@ func spawnUntilCancel(id string) (chan string, context.CancelFunc) {
 }
 
 func spawnWithTimeout(id string,
-		duration time.Duration,
-		accept func(msg string) bool,
-		ch chan string, doneCh chan bool) {
+	duration time.Duration,
+	accept func(msg string) bool,
+	ch chan string, doneCh chan bool) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 

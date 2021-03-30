@@ -1,8 +1,8 @@
 package devices
 
 import (
+	"context"
 	"fmt"
-	"github.com/alexpfx/go_keyd/internal/keymap"
 	"strconv"
 	"strings"
 )
@@ -14,15 +14,14 @@ const (
 	KeyRelease EventType = iota
 )
 
-
-type Monitor struct {
-	Activate []uint16
-	Escape   []uint16
-	Keymap   keymap.KeyMapper
+type KeyListener struct {
+	Devices []string
 }
 
-func (m Monitor) Start(id string) chan Event {
-	return m.monitor(id)
+//RawMonitor inicia o processo que ouve as entradas do usuário e faz a filtragem básica
+//transformando a saída em mensagem
+type RawMonitor struct {
+	Filter func(string) bool
 }
 
 type Event struct {
@@ -31,46 +30,38 @@ type Event struct {
 }
 
 type KeyStroke struct {
-	Keys [] uint16
+	Keys []uint16
 }
 
-func (m Monitor) monitor(id string) chan Event {
-	ch, cancel := spawnUntilCancel(id)
+func (m RawMonitor) monitor() (chan Event, context.CancelFunc) {
+	ch, cancel := spawnUntilCancel([]string{"test", "xi2", "--root"})
 
 	chEvent := make(chan Event)
 
 	go func() {
 		for {
 			rawMsg := <-ch
-			ev, err := parseRawMsg(rawMsg)
-			if err != nil{
-				fmt.Println(err)
+			ev, err := parse(rawMsg)
+			if err != nil {
 				continue
 			}
 			chEvent <- ev
-			if ev.Type == KeyRelease && ev.KeyId == 9{
-				cancel()
-				close(chEvent)
-				close(ch)
-			}
 		}
 	}()
 
-	return chEvent
+	return chEvent, cancel
 }
 
-func parseRawMsg(msg string) (Event, error) {
-	fields := strings.Fields(msg)
+type Msg struct {
+	
+}
+func parse(msg string) (Event, error) {
+	fields := strings.Split(msg, "\n")
 	if len(fields) < 1 {
 		return Event{}, fmt.Errorf("acabando execucao")
 	}
-	evType := fields[0]
-	switch evType {
-	case "key":
-		return parseKey(fields), nil
-	default:
-		return Event{}, fmt.Errorf("tipo de evento não tratado: %s", evType)
-	}
+
+
 
 }
 
