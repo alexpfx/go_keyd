@@ -3,6 +3,7 @@ package xinput
 type EventType uint16
 
 const (
+	Nothing          EventType = 0
 	DeviceChanged    EventType = 1
 	KeyPress         EventType = 2
 	KeyRelease       EventType = 3
@@ -33,4 +34,10 @@ type Event struct {
 	DeviceId  int
 	Detail    uint16
 	Modifiers uint16
+}
+
+type RawEvent struct {
+	EventType EventType
+	Payoff    []byte
+
 }

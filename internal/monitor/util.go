@@ -6,33 +6,34 @@ import (
 	"context"
 	"log"
 	"os/exec"
-	"strings"
 	"time"
 )
+
+var sep = []byte{'\n', '\n'}
+
 func dropCR(data []byte) []byte {
 	if len(data) > 0 && data[len(data)-1] == '\r' {
 		return data[0 : len(data)-1]
 	}
 	return data
 }
+
 func ScanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
-	if i := bytes.IndexByte(data, '\n'); i >= 0 {
-		// We have a full newline-terminated line.
-		return i + 1, dropCR(data[0:i]), nil
-	}
-	// If we're at EOF, we have a final, non-terminated line. Return it.
 	if atEOF {
 		return len(data), dropCR(data), nil
 	}
-	// Request more data.
+
+	if i := bytes.Index(data, sep); i >= 0 {
+		return i + len(sep), dropCR(data[0:i]), nil
+	}
 	return 0, nil, nil
 }
 
-func spawnUntilCancel(args [] string) (chan string, context.CancelFunc) {
-	ch := make(chan string, 1)
+func spawnUntilCancel(args []string) (chan []byte, context.CancelFunc) {
+	ch := make(chan []byte, 1)
 	ctx, cancel := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(ctx, "xinput", args...)
 	pipe, err := cmd.StdoutPipe()
@@ -42,8 +43,8 @@ func spawnUntilCancel(args [] string) (chan string, context.CancelFunc) {
 
 	go func() {
 		for scanner.Scan() {
-			text := scanner.Text()
-			ch <- strings.TrimSpace(text)
+			bs := []byte(scanner.Text())
+			ch <- bs
 		}
 	}()
 	err = cmd.Start()
@@ -56,9 +57,9 @@ func spawnUntilCancel(args [] string) (chan string, context.CancelFunc) {
 }
 
 func spawnWithTimeout(id string,
-	duration time.Duration,
-	accept func(msg string) bool,
-	ch chan string, doneCh chan bool) {
+		duration time.Duration,
+		accept func(msg string) bool,
+		ch chan string, doneCh chan bool) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 

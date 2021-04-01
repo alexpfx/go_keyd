@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"fmt"
 	"github.com/alexpfx/go_keyd/internal/xinput"
 )
 
@@ -16,27 +17,40 @@ type InputMonitor struct {
 }
 
 func (m InputMonitor) Start(deviceId uint16) (chan xinput.Event, context.CancelFunc) {
-	return m.monitor()
+	ch := make(chan xinput.Event)
+	rawCh, cancelFunc := m.monitor()
+
+	go func() {
+		for r := range rawCh {
+			fmt.Println(string(r.Payoff))
+			ch <- xinput.Event{
+				DeviceId:  0,
+				Detail:    0,
+				Modifiers: 0,
+			}
+		}
+	}()
+
+	return ch, cancelFunc
 }
 
 type KeyStroke struct {
 	Keys []uint16
 }
 
-func (m InputMonitor) monitor() (chan xinput.Event, context.CancelFunc) {
+func (m InputMonitor) monitor() (chan xinput.RawEvent, context.CancelFunc) {
 	ch, cancel := spawnUntilCancel([]string{"test-xi2", "--root"})
 
-	chEvent := make(chan xinput.Event)
+	chEvent := make(chan xinput.RawEvent)
 
 	go func() {
 		for {
 			rawMsg := <-ch
-			ev, err := xinput.Parse(rawMsg)
-			if err != nil {
+			ev := xinput.Parse(rawMsg)
+			if ev.EventType == xinput.Nothing {
 				continue
 			}
 			chEvent <- ev
-
 		}
 	}()
 
