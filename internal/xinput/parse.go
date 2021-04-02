@@ -6,33 +6,39 @@ import (
 	"strconv"
 )
 
-var EmptyRawEvent = RawEvent{
-	EventType: Nothing,
-}
+var number = regexp.MustCompile(`(\d+)`)
+
 var evTypeStr = []byte("EVENT type")
 
-func Parse(bs []byte) RawEvent {
+func Parse(rawEvent RawEvent) Event {
+	return Event{
+		EventType: rawEvent.EventType,
+		DeviceId:  0,
+		Detail:    0,
+		Modifiers: 0,
+	}
+}
+
+func ParseRaw(bs []byte) RawEvent {
 	if len(bs) == 0 {
-		return EmptyRawEvent
+		return RawEvent{}
 	}
 
 	if !bytes.HasPrefix(bs, evTypeStr) {
-		return EmptyRawEvent
+		return RawEvent{}
 	}
 
 	if i := bytes.IndexByte(bs, ')'); i >= 0 {
 		eventType := parse(bs[0 : i+1])
 		if eventType == Nothing {
-			return EmptyRawEvent
+			return RawEvent{}
 		}
 
-		return RawEvent{eventType, bs[i:]}
+		return RawEvent{eventType, bs[i+1:]}
 	}
-	return EmptyRawEvent
+	return RawEvent{}
 
 }
-
-var number = regexp.MustCompile(`(\d+)`)
 
 func parse(bs []byte) EventType {
 	found := number.Find(bs)
@@ -43,11 +49,6 @@ func parse(bs []byte) EventType {
 	if err != nil {
 		return Nothing
 	}
-	if n == 2 {
-		return KeyPress
-	} else if n == 3 {
-		return KeyRelease
-	}
-	return Nothing
 
+	return EventType(n)
 }

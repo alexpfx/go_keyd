@@ -1,43 +1,84 @@
 package xinput
 
-type EventType uint16
+type EventType int
 
 const (
-	Nothing          EventType = 0
-	DeviceChanged    EventType = 1
-	KeyPress         EventType = 2
-	KeyRelease       EventType = 3
-	ButtonPress      EventType = 4
-	ButtonRelease    EventType = 5
-	Motion           EventType = 6
-	Enter            EventType = 7
-	Leave            EventType = 8
-	FocusIn          EventType = 9
-	FocusOut         EventType = 10
-	HierarchyChanged EventType = 11
-	PropertyEvent    EventType = 12
-	RawKeyPress      EventType = 13
-	RawKeyRelease    EventType = 14
-	RawButtonPress   EventType = 15
-	RawButtonRelease EventType = 16
-	RawMotion        EventType = 17
-	TouchBegin       EventType = 18
-	TouchUpdate      EventType = 19
-	TouchEnd         EventType = 20
-	TouchOwnership   EventType = 21
-	RawTouchBegin    EventType = 22
-	RawTouchUpdate   EventType = 23
-	RawTouchEnd      EventType = 24
+	Nothing = iota
+	DeviceChanged
+	KeyPress
+	KeyRelease
+	ButtonPress
+	ButtonRelease
+	Motion
+	Enter
+	Leave
+	FocusIn
+	FocusOut
+	HierarchyChanged
+	PropertyEvent
+	RawKeyPress
+	RawKeyRelease
+	RawButtonPress
+	RawButtonRelease
+	RawMotion
+	TouchBegin
+	TouchUpdate
+	TouchEnd
+	TouchOwnership
+	RawTouchBegin
+	RawTouchUpdate
+	RawTouchEnd
 )
 
 type Event struct {
+	EventType EventType
 	DeviceId  int
 	Detail    uint16
 	Modifiers uint16
 }
 
+var eventTypeMap = map[EventType]string{
+	Nothing:          "Nothing",
+	DeviceChanged:    "DeviceChanged",
+	KeyPress:         "KeyPress",
+	KeyRelease:       "KeyRelease",
+	ButtonPress:      "ButtonPress",
+	ButtonRelease:    "ButtonRelease",
+	Motion:           "Motion",
+	Enter:            "Enter",
+	Leave:            "Leave",
+	FocusIn:          "FocusIn",
+	FocusOut:         "FocusOut",
+	HierarchyChanged: "HierarchyChanged",
+	PropertyEvent:    "PropertyEvent",
+	RawKeyPress:      "RawKeyPress",
+	RawKeyRelease:    "RawKeyRelease",
+	RawButtonPress:   "RawButtonPress",
+	RawButtonRelease: "RawButtonRelease",
+	RawMotion:        "RawMotion",
+	TouchBegin:       "TouchBegin",
+	TouchUpdate:      "TouchUpdate",
+	TouchEnd:         "TouchEnd",
+	TouchOwnership:   "TouchOwnership",
+	RawTouchBegin:    "RawTouchBegin",
+	RawTouchUpdate:   "RawTouchUpdate",
+	RawTouchEnd:      "RawTouchEnd",
+}
+
+func (r EventType) String() string {
+	return r.GetName()
+}
+
+func (r EventType) GetName() string {
+	n, ok := eventTypeMap[r]
+	if !ok {
+		return eventTypeMap[Nothing]
+	}
+	return n
+
+}
+
 type RawEvent struct {
 	EventType EventType
 	Payoff    []byte
-
 }
