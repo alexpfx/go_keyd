@@ -2,14 +2,15 @@ package monitor
 
 import (
 	"context"
-	"github.com/alexpfx/go_keyd/internal/xinput"
+	"github.com/alexpfx/go_keyd/internal/input"
+
 )
 
 type KeyListener struct {
 	Devices []string
 }
-type AcceptFunc func(event xinput.EventType) bool
-type StopFunc func(event xinput.Event) bool
+type AcceptFunc func(event input.EventType) bool
+type StopFunc func(event input.Event) bool
 
 type KeyStroke struct {
 	Keys []uint16
@@ -28,15 +29,17 @@ func NewKeyboardInput() Input {
 	}
 }
 
-func (m Input) Start() chan xinput.Event {
-	ch := make(chan xinput.Event)
+
+
+func (m Input) Start() chan input.Event {
+	ch := make(chan input.Event)
 	rawCh, cancelFunc := m.rawInputMonitor()
 
 	accept, stop := initFuncs(m)
 
 	go func() {
 		for rawEvent := range rawCh {
-			if rawEvent.EventType == xinput.Nothing {
+			if rawEvent.EventType == input.Nothing {
 				continue
 			}
 
@@ -44,7 +47,7 @@ func (m Input) Start() chan xinput.Event {
 				continue
 			}
 
-			ev := xinput.Parse(rawEvent)
+			ev := input.Parse(rawEvent)
 
 			if stop(ev) {
 				cancelFunc()
@@ -62,7 +65,7 @@ func (m Input) Start() chan xinput.Event {
 
 func initFuncs(m Input) (AcceptFunc, StopFunc) {
 	var accept = acceptAll
-	var stop = stopWhenPress
+	var stop = stopWhen
 
 	if m.Accept != nil {
 		accept = m.Accept
@@ -73,35 +76,35 @@ func initFuncs(m Input) (AcceptFunc, StopFunc) {
 	return accept, stop
 }
 
-var acceptKeyboard AcceptFunc = func(event xinput.EventType) bool {
+var acceptKeyboard AcceptFunc = func(event input.EventType) bool {
 	switch event {
-	case xinput.KeyPress, xinput.KeyRelease:
+	case input.KeyPress, input.KeyRelease:
 		return true
 	}
 	return false
 }
 
-var acceptMotion AcceptFunc = func(eType xinput.EventType) bool {
+var acceptMotion AcceptFunc = func(eType input.EventType) bool {
 	switch eType {
-	case xinput.Motion,
-		xinput.TouchBegin,
-		xinput.TouchEnd,
-		xinput.TouchUpdate:
+	case input.Motion,
+		input.TouchBegin,
+		input.TouchEnd,
+		input.TouchUpdate:
 		return true
 	}
 	return false
 }
 
-func (m Input) rawInputMonitor() (chan xinput.RawEvent, context.CancelFunc) {
+func (m Input) rawInputMonitor() (chan input.RawEvent, context.CancelFunc) {
 	ch, cancel := spawnUntilCancel([]string{"test-xi2", "--root"})
 
-	chEvent := make(chan xinput.RawEvent)
+	chEvent := make(chan input.RawEvent)
 
 	go func() {
 		for {
 			rawMsg := <-ch
-			ev := xinput.ParseRaw(rawMsg)
-			if ev.EventType == xinput.Nothing {
+			ev := input.ParseRaw(rawMsg)
+			if ev.EventType == input.Nothing {
 				continue
 			}
 			chEvent <- ev
@@ -111,11 +114,13 @@ func (m Input) rawInputMonitor() (chan xinput.RawEvent, context.CancelFunc) {
 	return chEvent, cancel
 }
 
-var acceptAll AcceptFunc = func(event xinput.EventType) bool {
+var acceptAll AcceptFunc = func(event input.EventType) bool {
 	return true
 }
 
-var stopWhenPress StopFunc = func(event xinput.Event) bool {
+var stopWhen StopFunc = func(event input.Event) bool {
+
+
 	return false
 }
 

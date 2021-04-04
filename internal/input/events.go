@@ -1,4 +1,9 @@
-package xinput
+package input
+
+import (
+	"syscall"
+	"unsafe"
+)
 
 type EventType int
 
@@ -33,8 +38,9 @@ const (
 type Event struct {
 	EventType EventType
 	DeviceId  int
-	Detail    uint16
-	Modifiers uint16
+	Detail    int
+	Buttons   int
+	Modifiers int
 }
 
 var eventTypeMap = map[EventType]string{
@@ -82,3 +88,13 @@ type RawEvent struct {
 	EventType EventType
 	Payoff    []byte
 }
+
+
+type InputEvent struct {
+	Time  syscall.Timeval // time in seconds since epoch at which event occurred
+	Type  uint16          // event type - one of ecodes.EV_*
+	Code  uint16          // event code related to the event type
+	Value int32           // event value related to the event type
+}
+
+var eventsize = int(unsafe.Sizeof(InputEvent{}))

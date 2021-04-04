@@ -2,30 +2,41 @@ package main
 
 import (
 	"fmt"
+	"github.com/alexpfx/go_keyd/internal/input"
 	evdev "github.com/gvalkov/golang-evdev"
-	"os"
-	"syscall"
-	"unsafe"
 )
 
 var fd uintptr
 
 var dev *evdev.InputDevice
 
-const devnode = "/dev/input/event3"
+const devnode = "/dev/input/event22"
 
 func main() {
-
 	devices, err := evdev.ListInputDevices("/dev/input/event*")
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	for _, dev := range devices {
-		fmt.Println(dev.Name, " ", dev.Fn)
+		fmt.Println(dev.Fn, " ", dev.File.Fd(), " ", dev.Name)
 	}
+
+	source := input.New(22)
+	evChannel, err := source.Listen()
+	if err != nil {
+		panic(err)
+	}
+	for ev := range evChannel {
+		fmt.Println(ev)
+	}
+
+
+	/*
 
 	file, err := os.Open(devnode)
 	check(err)
+
 
 	fd = file.Fd()
 
@@ -35,7 +46,7 @@ func main() {
 	_, _, err = syscall.Syscall(syscall.SYS_IOCTL, fd, evdev.EVIOCGRAB, uintptr(unsafe.Pointer(nil)))
 	check(err)
 
-	some()
+	some()*/
 }
 
 func some() {
