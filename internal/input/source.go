@@ -24,13 +24,13 @@ type inputFile struct {
 func (i inputFile) Listen() (chan Event, error) {
 	evChannel := make(chan Event)
 	device, err := open(fmt.Sprintf("/dev/input/event%d", i.deviceId))
-	if err != nil {
-		return nil, err
-	}
 
+	check(err)
+	fmt.Println("abriu")
 	go func() {
 		for {
-			events, _ := device.Read()
+			events, err := device.Read()
+			check(err)
 			for _, e := range events {
 
 				evChannel <- Event{
@@ -47,7 +47,7 @@ func (i inputFile) Listen() (chan Event, error) {
 		}
 	}()
 
-	return nil, err
+	return evChannel, nil
 }
 
 
@@ -77,12 +77,13 @@ func convertErr(err syscall.Errno) error {
 }
 
 func open(devfile string) (*evdev.InputDevice, error) {
+	var dev *evdev.InputDevice
+
 	fmt.Println(devfile)
 	device, err := evdev.Open(devfile)
+	dev = device
 	check(err)
-	_, err = os.Open(devfile)
-	check(err)
-	return device, err
+	return dev, err
 
 }
 

@@ -22,7 +22,7 @@ func main() {
 		fmt.Println(dev.Fn, " ", dev.File.Fd(), " ", dev.Name)
 	}
 
-	source := input.New(22)
+	source := input.New(3)
 	evChannel, err := source.Listen()
 	if err != nil {
 		panic(err)
