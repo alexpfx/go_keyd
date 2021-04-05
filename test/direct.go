@@ -10,8 +10,6 @@ var fd uintptr
 
 var dev *evdev.InputDevice
 
-const devnode = "/dev/input/event22"
-
 func main() {
 	devices, err := evdev.ListInputDevices("/dev/input/event*")
 	if err != nil {
@@ -22,7 +20,7 @@ func main() {
 		fmt.Println(dev.Fn, " ", dev.File.Fd(), " ", dev.Name)
 	}
 
-	source := input.New(3)
+	source := input.New(18)
 	evChannel, err := source.Listen()
 	if err != nil {
 		panic(err)
@@ -31,26 +29,25 @@ func main() {
 		fmt.Println(ev)
 	}
 
-
 	/*
 
-	file, err := os.Open(devnode)
-	check(err)
+		file, err := os.Open(devnode)
+		check(err)
 
 
-	fd = file.Fd()
+		fd = file.Fd()
 
-	_, _, err = syscall.Syscall(syscall.SYS_IOCTL, fd, evdev.EVIOCGRAB, 1)
-	check(err)
+		_, _, err = syscall.Syscall(syscall.SYS_IOCTL, fd, evdev.EVIOCGRAB, 1)
+		check(err)
 
-	_, _, err = syscall.Syscall(syscall.SYS_IOCTL, fd, evdev.EVIOCGRAB, uintptr(unsafe.Pointer(nil)))
-	check(err)
+		_, _, err = syscall.Syscall(syscall.SYS_IOCTL, fd, evdev.EVIOCGRAB, uintptr(unsafe.Pointer(nil)))
+		check(err)
 
-	some()*/
+		some()*/
 }
 
 func some() {
-	dev, err := evdev.Open(devnode)
+	dev, err := evdev.Open("")
 	checkP(err)
 
 	for {

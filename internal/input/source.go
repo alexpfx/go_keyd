@@ -24,8 +24,8 @@ type inputFile struct {
 func (i inputFile) Listen() (chan Event, error) {
 	evChannel := make(chan Event)
 	device, err := open(fmt.Sprintf("/dev/input/event%d", i.deviceId))
-
 	check(err)
+
 	fmt.Println("abriu")
 	go func() {
 		for {
@@ -43,26 +43,24 @@ func (i inputFile) Listen() (chan Event, error) {
 
 			}
 
-			close(evChannel)
 		}
 	}()
 
 	return evChannel, nil
 }
 
-
-func release(dev *InputDevice) error{
+func release(dev *InputDevice) error {
 	_, _, serr := syscall.RawSyscall(syscall.SYS_IOCTL, dev.fd.Fd(), eviocgrab, uintptr(0))
 	err := convertErr(serr)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil
 }
 func grab(dev *InputDevice) error {
-	_, _, errN := syscall.RawSyscall(syscall.SYS_IOCTL, dev.fd.Fd(), eviocgrab,  uintptr(1))
+	_, _, errN := syscall.RawSyscall(syscall.SYS_IOCTL, dev.fd.Fd(), eviocgrab, uintptr(1))
 	err := convertErr(errN)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -88,7 +86,7 @@ func open(devfile string) (*evdev.InputDevice, error) {
 }
 
 func check(err error) {
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 	}
 
